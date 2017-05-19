@@ -30,18 +30,11 @@ private final class TrackPartitionsCommitMode(consumer: KafkaConsumer[_, _], con
 
   private val log = LoggerFactory.getLogger(getClass)
 
-  private var _offsets: Map[TopicPartition, Long] = Map.empty
   private var _revoked = false
 
   override def onPartitionsRevoked(partitions: JCollection[TopicPartition]): Unit = {
     log.debug("onPartitionsRevoked: " + partitions.toString)
-
     _revoked = true
-
-    // If partitions have been revoked, keep a record of our current position within them.
-    if (!partitions.isEmpty) {
-      _offsets = partitions.asScala.map(partition => partition -> consumer.position(partition)).toMap
-    }
   }
 
   override def onPartitionsAssigned(partitions: JCollection[TopicPartition]): Unit = {
@@ -49,30 +42,13 @@ private final class TrackPartitionsCommitMode(consumer: KafkaConsumer[_, _], con
 
     _revoked = false
 
-    // If all of our previous partition assignments are present in the new assignment, we can continue uninterrupted by
-    // seeking to the required offsets.  If we have lost any partition assignments (i.e to another group member), we
-    // need to clear down the consumer actor state and proceed from the Kafka commit points.
-    val allExisting = _offsets.forall { case (partition, _) => partitions.contains(partition) }
-
-    if (allExisting) {
-      for {
-        partition <- partitions.asScala
-        offset <- _offsets.get(partition)
-      } {
-        log.info(s"Seeking partition: [{}] to offset [{}]", partition, offset)
-        consumer.seek(partition, offset)
-      }
-      consumerActor ! KafkaConsumerActor.RevokeResume
-
-    } else {
-      consumerActor ! KafkaConsumerActor.RevokeReset
-    }
+    // Reset the consumer to flush out any caches the client had built up
+    consumerActor ! KafkaConsumerActor.RevokeReset
   }
 
   override def isRevoked: Boolean = _revoked
 
   override def reset(): Unit = {
-    _offsets = Map.empty
     _revoked = false
   }
 }
