@@ -1,3 +1,21 @@
+import com.typesafe.sbt.SbtGit.git
+import scala.util.matching.Regex
+
+// Versioning
+enablePlugins(com.typesafe.sbt.GitVersioning)
+val VersionRegex: Regex = "v([.0-9]+)-?(.*)?".r
+lazy val versioningSettings = Seq(
+  git.useGitDescribe := true,
+  git.baseVersion := "0.0.0",
+  git.uncommittedSignifier := None,
+  git.gitTagToVersionNumber := {
+    case VersionRegex(v, "")         => Some(v)
+    case VersionRegex(v, "SNAPSHOT") => Some(s"$v-SNAPSHOT")
+    case VersionRegex(v, s)          => Some(s"$v-$s-SNAPSHOT")
+    case x => None
+  }
+)
+
 lazy val commonSettings = Seq(
   organization := "net.cakesolutions",
   scalaVersion := "2.12.1",
@@ -57,7 +75,7 @@ lazy val commonSettings = Seq(
     </developers>,
 
   licenses := ("MIT", url("http://opensource.org/licenses/MIT")) :: Nil
-)
+) ++ versioningSettings
 
 lazy val kafkaTestkit = project.in(file("testkit"))
   .settings(commonSettings: _*)
