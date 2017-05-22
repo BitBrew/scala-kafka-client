@@ -3,8 +3,8 @@ lazy val commonSettings = Seq(
   scalaVersion := "2.12.1",
   crossScalaVersions := Seq("2.11.8", "2.12.1"),
   publishMavenStyle := true,
-  bintrayOrganization := Some("cakesolutions"),
-  bintrayPackageLabels := Seq("scala", "kafka"),
+  //bintrayOrganization := Some("cakesolutions"),
+  //bintrayPackageLabels := Seq("scala", "kafka"),
 //  resolvers += "Apache Staging" at "https://repository.apache.org/content/groups/staging/",
   scalacOptions in Compile ++= Seq(
     "-encoding", "UTF-8",
@@ -33,6 +33,20 @@ lazy val commonSettings = Seq(
   //      credentials := List(Path.userHome / ".bintray" / ".artifactory").filter(_.exists).map(Credentials(_))
   //    )
   //  else
+
+  publishTo := {
+    val nexus = "https://nexus.bitbrew.com/"
+    if (isSnapshot.value)
+      Some("BitBrew Nexus Snapshots" at nexus + "repository/libs-snapshot-local")
+    else
+      Some("BitBrew Nexus Releases" at  nexus + "repository/libs-release-local")
+  },
+
+  (for {
+    username <- Option(System.getenv().get("CI_DEPLOY_USERNAME"))
+    password <- Option(System.getenv().get("CI_DEPLOY_PASSWORD"))
+  } yield credentials += Credentials("Sonatype Nexus Repository Manager", "nexus.bitbrew.com", username,
+    password)).getOrElse { credentials += Credentials(Path.userHome / ".nexus" / ".credentials") },
 
   parallelExecution in Test := false,
   parallelExecution in IntegrationTest := true,
