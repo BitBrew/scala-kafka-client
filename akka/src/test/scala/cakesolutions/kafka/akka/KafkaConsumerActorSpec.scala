@@ -2,7 +2,6 @@ package cakesolutions.kafka.akka
 
 import akka.actor.{ActorSystem, PoisonPill}
 import akka.testkit.TestProbe
-import cakesolutions.kafka.akka.KafkaConsumerActor.Subscribe.AutoPartition
 import cakesolutions.kafka.akka.KafkaConsumerActor.{Confirm, Subscribe, Unsubscribe}
 import cakesolutions.kafka.{KafkaConsumer, KafkaProducer, KafkaProducerRecord, KafkaTopicPartition}
 import com.typesafe.config.{Config, ConfigFactory}
@@ -55,7 +54,7 @@ class KafkaConsumerActorSpec(system_ : ActorSystem) extends KafkaIntSpec(system_
         """.stripMargin)
     )
 
-  def configuredActor(topic: String): Config =
+  def configuredActor: Config =
     ConfigFactory.parseString(
       s"""
          | bootstrap.servers = "localhost:$kafkaPort",
@@ -80,11 +79,11 @@ class KafkaConsumerActorSpec(system_ : ActorSystem) extends KafkaIntSpec(system_
           producer.flush()
 
           val consumer = KafkaConsumerActor(consumerConfig, actorConf, testActor)
-          consumer.subscribe(AutoPartition(Seq(topic)))
+          consumer.subscribe(Subscribe.AutoPartition(Seq(topic)))
 
           val rs = expectMsgClass(30.seconds, classOf[ConsumerRecords[String, String]])
           consumer.confirm(rs.offsets)
-          expectNoMsg(5.seconds)
+          expectNoMessage(5.seconds)
 
           consumer.unsubscribe()
           producer.close()
@@ -99,12 +98,12 @@ class KafkaConsumerActorSpec(system_ : ActorSystem) extends KafkaIntSpec(system_
     producer.flush()
 
     // Consumer and actor config in same config file
-    val consumer = system.actorOf(KafkaConsumerActor.props(configuredActor(topic), new StringDeserializer(), new StringDeserializer(), testActor))
+    val consumer = system.actorOf(KafkaConsumerActor.props(configuredActor, new StringDeserializer(), new StringDeserializer(), testActor))
     consumer ! Subscribe.AutoPartition(List(topic))
 
     val rs = expectMsgClass(30.seconds, classOf[ConsumerRecords[String, String]])
     consumer ! Confirm(rs.offsets)
-    expectNoMsg(5.seconds)
+    expectNoMessage(5.seconds)
 
     consumer ! Unsubscribe
     producer.close()
@@ -121,7 +120,7 @@ class KafkaConsumerActorSpec(system_ : ActorSystem) extends KafkaIntSpec(system_
     val downstreamActor = TestProbe().ref
 
     // Consumer and actor config in same config file
-    val consumer = system.actorOf(KafkaConsumerActor.props(configuredActor(topic), new StringDeserializer(), new StringDeserializer(), downstreamActor))
+    val consumer = system.actorOf(KafkaConsumerActor.props(configuredActor, new StringDeserializer(), new StringDeserializer(), downstreamActor))
     consumer ! Subscribe.AutoPartition(List(topic))
 
     // Initiate DeathWatch
@@ -148,7 +147,7 @@ class KafkaConsumerActorSpec(system_ : ActorSystem) extends KafkaIntSpec(system_
 
     val rs = expectMsgClass(30.seconds, classOf[ConsumerRecords[String, String]])
     consumer ! Confirm(rs.offsets, commit = true)
-    expectNoMsg(5.seconds)
+    expectNoMessage(5.seconds)
 
     consumer ! Unsubscribe
     producer.close()
@@ -167,8 +166,39 @@ class KafkaConsumerActorSpec(system_ : ActorSystem) extends KafkaIntSpec(system_
 
     val rs = expectMsgClass(30.seconds, classOf[ConsumerRecords[String, String]])
     consumer ! Confirm(rs.offsets)
-    expectNoMsg(5.seconds)
+    expectNoMessage(5.seconds)
 
+    consumer ! Unsubscribe
+    producer.close()
+  }
+
+  "KafkaConsumerActor configured in manual offset mode for specific times" should
+    "consume a sequence of messages starting from provided timestamps" in {
+    val topic = randomString
+    val partition = KafkaTopicPartition(topic, 0)
+
+    val producer = kafkaProducer("localhost", kafkaPort)
+    producer.send(KafkaProducerRecord(topic, None, "first"))
+    producer.flush()
+
+    val interludeTimestamp = java.time.Instant.now().toEpochMilli
+
+    producer.send(KafkaProducerRecord(topic, None, "second"))
+    producer.flush()
+
+    val timeOffsets = Offsets(Map(partition -> interludeTimestamp))
+
+    val consumer = system.actorOf(KafkaConsumerActor.props(consumerConf, KafkaConsumerActor.Conf(), testActor))
+
+    consumer ! Subscribe.ManualOffsetForTimes(timeOffsets)
+
+    val rs = expectMsgClass(30.seconds, classOf[ConsumerRecords[String, String]])
+    consumer ! Confirm(rs.offsets)
+    expectNoMessage(5.seconds)
+
+    import scala.collection.JavaConverters._
+    val messages = rs.records.iterator().asScala.toList.map(_.value())
+    messages should be (List("second"))
     consumer ! Unsubscribe
     producer.close()
   }
@@ -187,7 +217,7 @@ class KafkaConsumerActorSpec(system_ : ActorSystem) extends KafkaIntSpec(system_
 
     val rs = expectMsgClass(30.seconds, classOf[ConsumerRecords[String, String]])
     consumer ! Confirm(rs.offsets)
-    expectNoMsg(5.seconds)
+    expectNoMessage(5.seconds)
 
     consumer ! Unsubscribe
     producer.close()

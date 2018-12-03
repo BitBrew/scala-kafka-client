@@ -1,25 +1,7 @@
-import com.typesafe.sbt.SbtGit.git
-import scala.util.matching.Regex
-
-// Versioning
-enablePlugins(com.typesafe.sbt.GitVersioning)
-val VersionRegex: Regex = "v([.0-9]+)-?(.*)?".r
-lazy val versioningSettings = Seq(
-  git.useGitDescribe := true,
-  git.baseVersion := "0.0.0",
-  git.uncommittedSignifier := None,
-  git.gitTagToVersionNumber := {
-    case VersionRegex(v, "")         => Some(v)
-    case VersionRegex(v, "SNAPSHOT") => Some(s"$v-SNAPSHOT")
-    case VersionRegex(v, s)          => Some(s"$v-$s-SNAPSHOT")
-    case x => None
-  }
-)
-
 lazy val commonSettings = Seq(
   organization := "net.cakesolutions",
-  scalaVersion := "2.12.1",
-  crossScalaVersions := Seq("2.11.8", "2.12.1"),
+  scalaVersion := "2.12.6",
+  crossScalaVersions := Seq("2.11.12", "2.12.6"),
   publishMavenStyle := true,
   //bintrayOrganization := Some("cakesolutions"),
   //bintrayPackageLabels := Seq("scala", "kafka"),
@@ -52,20 +34,6 @@ lazy val commonSettings = Seq(
   //    )
   //  else
 
-  publishTo := {
-    val nexus = "https://nexus.bitbrew.com/"
-    if (isSnapshot.value)
-      Some("BitBrew Nexus Snapshots" at nexus + "repository/libs-snapshot-local")
-    else
-      Some("BitBrew Nexus Releases" at  nexus + "repository/libs-release-local")
-  },
-
-  (for {
-    username <- Option(System.getenv().get("CI_DEPLOY_USERNAME"))
-    password <- Option(System.getenv().get("CI_DEPLOY_PASSWORD"))
-  } yield credentials += Credentials("Sonatype Nexus Repository Manager", "nexus.bitbrew.com", username,
-    password)).getOrElse { credentials += Credentials(Path.userHome / ".nexus" / ".credentials") },
-
   parallelExecution in Test := false,
   parallelExecution in IntegrationTest := true,
 
@@ -89,7 +57,7 @@ lazy val commonSettings = Seq(
     </developers>,
 
   licenses := ("MIT", url("http://opensource.org/licenses/MIT")) :: Nil
-) ++ versioningSettings
+)
 
 lazy val kafkaTestkit = project.in(file("testkit"))
   .settings(commonSettings: _*)
@@ -111,6 +79,6 @@ lazy val scalaKafkaClientExamples = project.in(file("examples"))
 
 lazy val root = project.in(file("."))
   .settings(commonSettings: _*)
-  .settings(unidocSettings: _*)
+  .enablePlugins(ScalaUnidocPlugin)
   .settings(name := "scala-kafka-client-root", publishArtifact := false, publish := {}, publishLocal := {})
   .aggregate(scalaKafkaClient, scalaKafkaClientAkka, kafkaTestkit)

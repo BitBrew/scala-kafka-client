@@ -1,14 +1,14 @@
-# Scala support for Apache Kafka's Java client library 0.9.0.x and 0.10.x.x
+# Scala support for Apache Kafka's Java client library 0.9.0.x - 2.0.0
 
 [![Join the chat at https://gitter.im/cakesolutions/scala-kafka-client](https://badges.gitter.im/cakesolutions/scala-kafka-client.svg)](https://gitter.im/cakesolutions/scala-kafka-client?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 [![Build status](https://travis-ci.org/cakesolutions/scala-kafka-client.svg?branch=master)](https://travis-ci.org/cakesolutions/scala-kafka-client)
 [![Dependencies](https://app.updateimpact.com/badge/748875216658239488/scala-kafka-client-root.svg?config=compile)](https://app.updateimpact.com/latest/748875216658239488/scala-kafka-client-root)
 [![codecov](https://codecov.io/gh/cakesolutions/scala-kafka-client/branch/master/graph/badge.svg)](https://codecov.io/gh/cakesolutions/scala-kafka-client)
 
-This project comprises a few helper modules for operating the [Kafka Java Client Driver](https://kafka.apache.org/0100/javadoc/index.html) in a Scala codebase.
+This project comprises a few helper modules for operating the [Kafka Java Client Driver](https://kafka.apache.org/11/javadoc/index.html?overview-summary.html) in a Scala codebase.
 
 * [Scala Kafka Client](#scala-kafka-client)
-* [Scala Kafka Client - Akka Integration](#scala-kafka-client---akka-integration)
+* [Scala Kafka Client - Akka Integration](#akka-integration)
 * [TestKit](#testkit)
 
 <img src="https://raw.githubusercontent.com/wiki/cakesolutions/scala-kafka-client/images/logo.png" align="sck" height="250" width="300">
@@ -21,7 +21,9 @@ These modules are production ready, actively maintained and are used in a large 
 
 To resolve any of the modules, add the following resolver to the build.sbt:
 
-    resolvers += Resolver.bintrayRepo("cakesolutions", "maven")
+```scala
+resolvers += Resolver.bintrayRepo("cakesolutions", "maven")
+```
 
 ## Components
 
@@ -38,7 +40,7 @@ For configuration and usage, see the Wiki:
 SBT library dependency:
 
 ```scala
-libraryDependencies += "net.cakesolutions" %% "scala-kafka-client" % "0.10.2.1"
+libraryDependencies += "net.cakesolutions" %% "scala-kafka-client" % "1.1.1"
 ```
 
 ### Akka Integration
@@ -52,7 +54,7 @@ For configuration and usage, see the Wiki:
 SBT library dependency:
 
 ```scala
-libraryDependencies += "net.cakesolutions" %% "scala-kafka-client-akka" % "0.10.2.1"
+libraryDependencies += "net.cakesolutions" %% "scala-kafka-client-akka" % "1.1.1"
 ```
 
 ### TestKit
@@ -66,7 +68,7 @@ For usage, see the Wiki:
 SBT library dependency:
 
 ```scala
-libraryDependencies += "net.cakesolutions" %% "scala-kafka-client-testkit" % "0.10.2.1" % "test"
+libraryDependencies += "net.cakesolutions" %% "scala-kafka-client-testkit" % "1.1.1" % "test"
 ```
 
 ## Version Compatibility
@@ -81,12 +83,16 @@ Binary compatibility in the new versioning system works as follows:
 * The fourth digit in the version indicates a compatible change between Scala Kafka client versions.
   For example, `0.9.0.0` is compatible with `0.9.0.1`.
 
-Both the `0.9.*` and `0.10.*` versions are maintained concurrently.
+Both the `0.10.*` and `1.0.*` versions are maintained concurrently.
 
 Here is the full table of binary compatibilities between Scala Kafka client and the Kafka Java driver:
 
  Scala Kafka client    | Kafka Java Driver
  --------------------- | -----------------
+ 2.0.0                 | 2.0.0
+ 1.1.1                 | 1.1.1
+ 1.0.0                 | 1.0.0
+ 0.11.0.0              | 0.11.0.0
  0.10.2.x              | 0.10.2.x
  0.10.1.x              | 0.10.1.x
  0.10.0.0              | 0.10.0.x
@@ -95,6 +101,26 @@ Here is the full table of binary compatibilities between Scala Kafka client and 
  0.7.0                 | 0.9.0.1
 
 ## Change log
+
+### 2.0.0 - 08/2018
+* Update to Kafka 2.0.0
+
+### 1.1.0 - 08/2018
+* Update to Kafka 1.1.1
+
+### 1.1.0 - 04/2018
+* Update to Kafka 1.1.0
+
+### 1.0.0 - 12/2017
+* Update to Kafka 1.0.0
+
+### 0.11.0.0 - 07/2017
+* Update to Kafka 0.11.0.0
+* Update Akka to 2.5.3
+* Added transaction related properties to config options.
+
+### 0.10.2.2 - 05/2017
+* Minor improvements to producer API
 
 ### 0.10.2.1 - 05/2017
 
@@ -157,6 +183,6 @@ innovative and intelligent tools for profiling Java and .NET applications.
 
 ## License
 
-Copyright 2016, Cake Solutions.
+Copyright 2016-2018, Cake Solutions.
 
 Licensed under the MIT License

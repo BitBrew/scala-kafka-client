@@ -3,8 +3,7 @@ package cakesolutions.kafka.akka
 import akka.actor.{ActorRef, ActorSystem}
 import akka.testkit.TestActor.AutoPilot
 import akka.testkit.{ImplicitSender, TestActor, TestKit, TestProbe}
-import cakesolutions.kafka.akka.KafkaConsumerActor.Confirm
-import cakesolutions.kafka.akka.KafkaConsumerActor.Subscribe.AutoPartition
+import cakesolutions.kafka.akka.KafkaConsumerActor.{Confirm, Subscribe}
 import cakesolutions.kafka.{KafkaConsumer, KafkaProducer, KafkaProducerRecord}
 import com.typesafe.config.ConfigFactory
 import org.apache.kafka.common.serialization.{StringDeserializer, StringSerializer}
@@ -72,13 +71,13 @@ class KafkaE2EActorPerfSpec(system_ : ActorSystem)
 
     val consumer = KafkaConsumerActor(consumerConf, consumerActorConf, receiver.ref)
 
-    1 to totalMessages foreach { n =>
+    1 to totalMessages foreach { _ =>
       testProducer.send(KafkaProducerRecord(sourceTopic, None, msg1k))
     }
     testProducer.flush()
     log.info("Delivered {} messages to topic {}", totalMessages, sourceTopic)
 
-    consumer.subscribe(AutoPartition(Seq(sourceTopic)))
+    consumer.subscribe(Subscribe.AutoPartition(Seq(sourceTopic)))
 
     whenReady(pilot.future) { case (totalTime, messagesPerSec) =>
       log.info("Total Time millis : {}", totalTime)

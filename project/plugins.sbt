@@ -1,13 +1,17 @@
 logLevel := Level.Warn
 
-addSbtPlugin("net.virtual-void" % "sbt-dependency-graph" % "0.8.2")
+addSbtPlugin("net.virtual-void" % "sbt-dependency-graph" % "0.9.0")
 
 //addSbtPlugin("me.lessis" % "bintray-sbt" % "0.3.0")
 
-addSbtPlugin("com.typesafe.sbt" % "sbt-git" % "0.9.2")
+addSbtPlugin("com.typesafe.sbt" % "sbt-git" % "1.0.0")
 
-addSbtPlugin("com.eed3si9n" % "sbt-unidoc" % "0.3.3")
+addSbtPlugin("org.foundweekends" % "sbt-bintray" % "0.5.4")
 
-addSbtPlugin("com.updateimpact" % "updateimpact-sbt-plugin" % "2.1.1")
+addSbtPlugin("com.github.gseitz" % "sbt-release" % "1.0.9")
 
-addSbtPlugin("org.scoverage" % "sbt-scoverage" % "1.5.0")
+addSbtPlugin("com.eed3si9n" % "sbt-unidoc" % "0.4.1")
+
+addSbtPlugin("com.updateimpact" % "updateimpact-sbt-plugin" % "2.1.3")
+
+addSbtPlugin("org.scoverage" % "sbt-scoverage" % "1.5.1")

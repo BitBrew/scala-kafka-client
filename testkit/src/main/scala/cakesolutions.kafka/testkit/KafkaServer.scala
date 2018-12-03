@@ -31,7 +31,8 @@ object KafkaServer {
   val defaultConfig: Map[String, String] = Map(
     KafkaConfig.BrokerIdProp  -> "1",
     KafkaConfig.ReplicaSocketTimeoutMsProp -> "1500",
-    KafkaConfig.ControlledShutdownEnableProp -> "true"
+    KafkaConfig.ControlledShutdownEnableProp -> "true",
+    KafkaConfig.AdvertisedHostNameProp -> "localhost"
   )
 
   /**
@@ -60,7 +61,11 @@ object KafkaServer {
     val baseConfig = Map(
       "port" -> port.toString,
       "zookeeper.connect" -> ("localhost:" + zookeeperPort.toString),
-      "log.dir" -> logDir.getAbsolutePath
+      "log.dir" -> logDir.getAbsolutePath,
+      "offsets.topic.replication.factor" -> "1",
+      "transaction.state.log.replication.factor" -> "1",
+      "transaction.state.log.min.isr" -> "1",
+      "min.insync.replicas" -> "1"
     )
 
     val extendedConfig = otherOptions ++ baseConfig
@@ -154,7 +159,7 @@ final class KafkaServer(
       val collected = ArrayBuffer.empty[(Option[Key], Value)]
       val start = System.currentTimeMillis()
 
-      while (total <= expectedNumOfRecords && System.currentTimeMillis() < start + timeout) {
+      while (total < expectedNumOfRecords && System.currentTimeMillis() < start + timeout) {
         val records = consumer.poll(100)
         val kvs = records.asScala.map(r => (Option(r.key()), r.value()))
         collected ++= kvs

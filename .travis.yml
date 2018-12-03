@@ -1,25 +1,36 @@
 language: scala
 jdk: oraclejdk8
 scala:
-    - 2.11.8
-    - 2.12.1
+  - 2.11.12
+  - 2.12.6
 
 script:
-- sbt ++$TRAVIS_SCALA_VERSION clean coverage test coverageReport
-- sbt coverageAggregate
-- '[ "${TRAVIS_PULL_REQUEST}" = "false" ] && sbt updateImpactSubmit || true'
+  - sbt ++$TRAVIS_SCALA_VERSION -Dakka.test.timefactor=5 clean coverage test coverageReport
+  - sbt coverageAggregate
+  - '[ "${TRAVIS_PULL_REQUEST}" = "false" ] && sbt updateImpactSubmit || true'
 
 after_success:
-- bash <(curl -s https://codecov.io/bash)
+  - bash <(curl -s https://codecov.io/bash)
 
 deploy:
-- provider: script
-  skip_cleanup: true
-  script: sbt "+ publish"
-  on:
-    branch: master
-- provider: script
-  skip_cleanup: true
-  script: sbt "+ publish"
-  on:
-    tags: true
+  - provider: script
+    skip_cleanup: true
+    script: sbt "+ publish"
+    on:
+      branch: master
+  - provider: script
+    skip_cleanup: true
+    script: sbt "+ publish"
+    on:
+      tags: true
+
+cache:
+  directories:
+    - $HOME/.sbt
+    - $HOME/.ivy2
+    - $HOME/.m2
+
+before_cache:
+  # Cleanup the cached directories to avoid unnecessary cache updates
+  - find $HOME/.ivy2/cache -name "ivydata-*.properties" -print -delete
+  - find $HOME/.sbt        -name "*.lock"               -print -delete
