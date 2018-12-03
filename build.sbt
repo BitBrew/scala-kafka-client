@@ -1,3 +1,5 @@
+import ResolverSettings._
+
 lazy val commonSettings = Seq(
   organization := "net.cakesolutions",
   scalaVersion := "2.12.6",
@@ -6,6 +8,20 @@ lazy val commonSettings = Seq(
   //bintrayOrganization := Some("cakesolutions"),
   //bintrayPackageLabels := Seq("scala", "kafka"),
 //  resolvers += "Apache Staging" at "https://repository.apache.org/content/groups/staging/",
+  publishTo := {
+    val nexus = "https://nexus.bitbrew.com/"
+    if (isSnapshot.value)
+      Some("BitBrew Nexus Snapshots" at nexus + "repository/libs-snapshot-local")
+    else
+      Some("BitBrew Nexus Releases" at nexus + "repository/libs-release-local")
+  },
+
+  resolvers := projectResolvers,
+  credentials += projectCredentials,
+
+  // Needed to circumvent this issue: https://github.com/sbt/sbt/issues/3570
+  updateOptions := updateOptions.value.withGigahorse(false),
+
   scalacOptions in Compile ++= Seq(
     "-encoding", "UTF-8",
     "-target:jvm-1.8",
